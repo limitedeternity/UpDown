@@ -2,7 +2,7 @@
 
 > A Python3 utility to monitor website availability
 
-### Usage:
+## Usage:
 ```
 up-down.py [-h] [--detach] [--kill] [--add-host ADD_HOST]
                   [--remove-host REMOVE_HOST] [--list-hosts] [--clear-hosts]
@@ -20,7 +20,7 @@ optional arguments:
   --clear-hosts         Clear memory and exit
 ```
 
-### User guide:
+## User guide:
 
 > This utility is written for MacOS, but this can be changed, if you know how.
 
@@ -59,7 +59,7 @@ Availability checks are performed **once per minute**. If website availability c
 
 Program exits automatically if list returned by `--list-hosts` is empty.
 
-### Developer guide:
+## Developer guide:
 
 1) Memory, that is mentioned in "Usage" section, is `memory.db`, an SQLite3 database. You may interact with it directly if you want, but be sure not to violate database's schema.
 
@@ -87,3 +87,9 @@ It's a text file with daemon's PID in it. `--detach` switch makes program fork i
 3) Notifications are being dispatched on lines **100 and 106** using `subprocess.call` and `osascript`. If you want to adapt this program to another OS, you need to change these lines.
 
 4) Periodic availability check is implemented using combination of `while True:` and `time.sleep`. Therefore, check interval can be customized on line **112**.
+
+## Meta
+
+Distributed under the GPL-3.0 license. See ``LICENSE`` for more information.
+
+[@limitedeternity](https://github.com/limitedeternity)
