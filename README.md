@@ -47,6 +47,10 @@ $ ./up-down.py --remove-host https://google.com/
 Deleted https://google.com/ from memory
 $ ./up-down.py --list-hosts
 https://moodle.herzen.spb.ru/
+$ ./up-down.py --kill
+Daemon stopped successfully
+Traceback (most recent call last):
+<...>
 ```
 
 Availability checks are performed **once per minute**. If website availability changes, **UpDown** creates a notification using `osascript`.
