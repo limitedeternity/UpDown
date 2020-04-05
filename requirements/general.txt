@@ -1,0 +1,4 @@
+requests[security]
+Cython==0.29.16
+plyer==1.4.3
+python-slugify==4.0.0

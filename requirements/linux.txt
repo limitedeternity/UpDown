@@ -1,0 +1,2 @@
+-r general.txt
+dbus-python==1.2.16
