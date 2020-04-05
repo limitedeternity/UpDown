@@ -108,7 +108,7 @@ def DatabaseControl(args):
             '''CREATE TABLE IF NOT EXISTS memory (
                 host TEXT NOT NULL UNIQUE,
                 isdown INTEGER DEFAULT 0 CHECK (isdown == 0 OR isdown == 1),
-                interval INTEGER DEFAULT 20 CHECK (interval > 1)
+                interval INTEGER DEFAULT 20 CHECK (interval >= 1)
             );'''
         )\
         .then(connection.commit)\
@@ -305,8 +305,7 @@ def main(args):
 
     while True:
         try:
-            # рыба, блокирующая главный поток. ни на что не влияет
-            sleep(5)
+            sleep(5.1)
 
         except Exception:
             break
@@ -320,7 +319,7 @@ if __name__ == "__main__":
     parser.add_argument("--detach", dest="detach", action="store_true", required=False, help="Start process as a daemon.")
     parser.add_argument("--kill", dest="kill", action="store_true", required=False, help="Terminate daemonized process and exit.")
     parser.add_argument("--add-host", dest="add_host", type=str, required=False, help="Add host to memory and exit.")
-    parser.add_argument("--with-interval", dest="interval", type=lambda x: (int(x) > 1) and int(x) or exit("interval ∉ Nat"), required=False, help="Specify check interval in seconds. Should be used with --add-host.")
+    parser.add_argument("--with-interval", dest="interval", type=lambda x: (int(x) >= 1) and int(x) or exit("interval ∉ Nat"), required=False, help="Specify check interval in seconds. Should be used with --add-host.")
     parser.add_argument("--remove-host", dest="remove_host", type=str, required=False, help="Remove host from memory and exit.")
     parser.add_argument("--list-hosts", dest="list_hosts", action="store_true", required=False, help="List hosts in memory and exit.")
     parser.add_argument("--clear-hosts", dest="clear_hosts", action="store_true", required=False, help="Clear memory and exit.")
