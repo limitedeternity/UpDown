@@ -145,12 +145,14 @@ def DatabaseControl(args):
         if not args["add_host"]:
             return
 
+        # Add host with interval to memory. If host exists, update interval.
         if args["interval"]:
             cursor.execute(
                 '''INSERT INTO memory (host, interval) VALUES (?, ?) ON CONFLICT(host) DO UPDATE SET interval=excluded.interval;''',
                 (args["add_host"], args["interval"])
             )
 
+        # Add host with default interval. If host exists, ignore.
         else:
             cursor.execute(
                 '''INSERT OR IGNORE INTO memory (host) VALUES (?);''',
@@ -165,6 +167,7 @@ def DatabaseControl(args):
     list_flow = Conditional(bool, args["list_hosts"])\
         .then(
             pipe(
+                # https://michaelsoolee.com/case-insensitive-sorting-sqlite/
                 lambda cur: cur.execute('''SELECT host, interval FROM memory ORDER BY host COLLATE NOCASE ASC;'''),
                 lambda selection: map(lambda row: f"{row[0]} — every {row[1]} seconds", selection),
                 "\n".join,
@@ -200,6 +203,7 @@ def main(args):
         )
 
         try:
+            # Throws an exception if response status is 4xx or 5xx or there was a connection error.
             requests.get(host).raise_for_status()
 
             if task["isdown"] == 1:
@@ -215,6 +219,7 @@ def main(args):
 
 
     def update_db():
+        # RUNTIME_TASKS is empty on startup. Therefore, there is nothing to sync.
         if not RUNTIME_TASKS:
             return
 
@@ -232,6 +237,11 @@ def main(args):
                 immediately=True
             )
 
+        # 1. SELECT returns List[Tuple].
+        # 2. zip(["host", "isdown", "interval"], ("https://example.com", 0, 20)) 
+        # -> [('host', 'https://example.com'), ('isdown', 0), ('interval', 20)]
+        # 3. dict() -> {'host': 'https://example.com', 'isdown': 0, 'interval': 20}
+        # 4. map returns an iterator. Piping to list to create a reusable list.
         row_dicts = pipe(list)(
             map(
                 lambda row: dict(zip(["host", "isdown", "interval"], row)),
@@ -240,6 +250,7 @@ def main(args):
         )
 
         for row_dict in row_dicts:
+            # Task search
             task = None
             idx = None
             for task_idx, task_dict in enumerate(RUNTIME_TASKS):
@@ -247,27 +258,36 @@ def main(args):
                     task = task_dict
                     idx = task_idx
 
+            # If task wasn't found, add it
             if not task:
                 RUNTIME_TASKS.append(row_dict)
                 CRONTAB.append(spawn_cronjob(row_dict))
                 log_write(row_dict["host"], "START")
 
+            # Otherwise, it's there
             else:
+                # If task interval doesn't match the one in memory...
                 if task["interval"] != row_dict["interval"]:
+                    # ...this task may've been cancelled. 
+                    # If it is, notify that it's starting again
                     if task["interval"] == -1:
                         log_write(row_dict["host"], "START")
 
+                    # ...sync it
                     CRONTAB[idx].cancel()
                     RUNTIME_TASKS.__setitem__(idx, {**task, "interval": row_dict["interval"]})
                     CRONTAB.__setitem__(idx, spawn_cronjob(row_dict))
                     log_write(row_dict["host"], f"APPLY [INTERVAL={row_dict['interval']}]")
 
 
+        # Create a list with only hosts
         row_hosts = pipe(list)(
             map(lambda sel: sel["host"], row_dicts)
         )
 
         for task_idx, task_dict in enumerate(RUNTIME_TASKS):
+            # Check if any of tasks in RUNTIME_TASKS is absent in memory.
+            # If the one has been found and wasn't already cancelled, cancel it.
             if task_dict["host"] not in row_hosts and task_dict["interval"] != -1:
                 CRONTAB[task_idx].cancel()
                 RUNTIME_TASKS.__setitem__(task_idx, {**task_dict, "interval": -1})

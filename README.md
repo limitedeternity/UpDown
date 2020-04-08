@@ -54,12 +54,12 @@ What I mean is you run this program (with `--detach` flag or just in one separat
 $ python3 up-down.py --detach
 Daemon created successfully
 $ python3 up-down.py --list-hosts
-https://google.com/
-https://moodle.herzen.spb.ru/
+https://google.com/ — every 20 seconds
+https://moodle.herzen.spb.ru/ — every 20 seconds
 $ python3 up-down.py --remove-host https://google.com/
 Deleted https://google.com/ from memory
 $ python3 up-down.py --list-hosts
-https://moodle.herzen.spb.ru/
+https://moodle.herzen.spb.ru/ — every 20 seconds
 $ python3 up-down.py --kill
 Daemon stopped successfully
 ```
